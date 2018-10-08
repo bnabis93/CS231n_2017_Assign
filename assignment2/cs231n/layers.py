@@ -25,7 +25,16 @@ def affine_forward(x, w, b):
     # TODO: Implement the affine forward pass. Store the result in out. You   #
     # will need to reshape the input into rows.                               #
     ###########################################################################
-    pass
+    NN = x.shape[0]
+    reshaped_input = np.reshape(x,[NN, -1])
+
+    #print('NN : ',NN)
+    #print('x shape : ',x.shape)
+    #print('re shape : ',reshaped_input.shape)
+
+    out = np.dot(reshaped_input, w) + b
+    # wx + b
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -53,7 +62,24 @@ def affine_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
-    pass
+
+    # Number of images in the batch.
+    NN = x.shape[0]
+
+    # Reshape each input in our batch to a vector.
+    reshaped_x = np.reshape(x,[NN, -1])
+
+    # Calculate dx = w*dout - remember to reshape back to shape of x.
+    dx = np.dot(dout, w.T)
+    dx = np.reshape(dx, x.shape)
+
+    # Calculate dw = x*dout
+    dw = np.dot(reshaped_x.T,dout)
+
+    # Calculate db = dout
+    db = np.sum(dout, axis=0)    
+
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -75,7 +101,8 @@ def relu_forward(x):
     ###########################################################################
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
-    pass
+    out = x.copy()  # Must use copy in numpy to avoid pass by reference.
+    out[out < 0] = 0
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -98,7 +125,10 @@ def relu_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
-    pass
+    relu_mask = (x >= 0)
+    #print('relu shape : ',relu_mask.shape)
+    #print(relu_mask)
+    dx = dout * relu_mask
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################

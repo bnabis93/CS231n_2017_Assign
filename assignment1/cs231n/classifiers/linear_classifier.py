@@ -57,6 +57,7 @@ class LinearClassifier(object):
       # replacement is faster than sampling without replacement.              #
       #########################################################################
       batchIdx = np.random.choice(xIdx,batch_size)
+      #print('batch Idx shape is : ', batchIdx.shape)
       X_batch = X[batchIdx]
       y_batch = y[batchIdx]
       
@@ -74,7 +75,7 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+      self.W = -(learning_rate * grad) + self.W
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -103,7 +104,9 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+    # predict label from our result
+    pred_score = np.dot(X,self.W)
+    y_pred = np.argmax(pred_score, axis = 1)
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
