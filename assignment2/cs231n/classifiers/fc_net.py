@@ -47,14 +47,9 @@ class TwoLayerNet(object):
         # weights and biases using the keys 'W1' and 'b1' and second layer weights #
         # and biases using the keys 'W2' and 'b2'.                                 #
         ############################################################################
-        
-        # init step, weight / bias
-        # W = data in normal distribution
-        # two layer NN. [W1], [W2], [b1], [b2]
 
         self.params['W1'] = np.random.normal(0, weight_scale, [input_dim, hidden_dim])
         self.params['b1'] = np.zeros([hidden_dim])
-
         self.params['W2'] = np.random.normal(0, weight_scale, [hidden_dim, num_classes])
         self.params['b2'] = np.zeros([num_classes])
 
@@ -87,12 +82,11 @@ class TwoLayerNet(object):
         # TODO: Implement the forward pass for the two-layer net, computing the    #
         # class scores for X and storing them in the scores variable.              #
         ############################################################################
-        # forward pass of two layer net
 
-        # first, get flatten data in the images. 
         batch_size = X.shape[0]
-        flat_X = np.reshape(X, [batch_size, -1])
 
+        # Reshape input to vectors.
+        flat_X = np.reshape(X, [batch_size, -1])
 
         # FC1
         fc1_act, fc1_cache = affine_forward(flat_X, self.params['W1'], self.params['b1'])
@@ -123,23 +117,17 @@ class TwoLayerNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        # backward path.
 
-        # get result, bzc of bachward path. (dL / dL)
-        # data의 input을 변화시킬것은 아니기 때문에,
-        # 우리는 weight만을 update 해주도록 한다.
         loss, dsoft = softmax_loss(scores, y)
 
-        # using L2 regularization.
-        # Re!!!
         loss += 0.5*self.reg*(np.sum(np.square(self.params['W1'])) + np.sum(np.square(self.params['W2'])))
 
         dx2, dw2, db2 = affine_backward(dsoft, fc2_cache)
         drelu = relu_backward(dx2, relu1_cache)
         dx1, dw1, db1 = affine_backward(drelu, fc1_cache)
 
-        grads['W2'], grads['b2'] = dw2 + self.reg * self.params['W2'], db2
-        grads['W1'], grads['b1'] = dw1 + self.reg * self.params['W1'], db1
+        grads['W2'], grads['b2'] = dw2 + self.reg*self.params['W2'], db2
+        grads['W1'], grads['b1'] = dw1 + self.reg*self.params['W1'], db1
 
 
         ############################################################################
@@ -207,7 +195,7 @@ class FullyConnectedNet(object):
         # beta2, etc. Scale parameters should be initialized to one and shift      #
         # parameters should be initialized to zero.                                #
         ############################################################################
-        
+
         # Initialise the weights and biases for each fully connected layer connected to a Relu.
         for i in range(self.num_layers - 1):
             self.params['W' + str(i+1)] = np.random.normal(0, weight_scale, [input_dim, hidden_dims[i]])
@@ -282,6 +270,7 @@ class FullyConnectedNet(object):
         # self.bn_params[1] to the forward pass for the second batch normalization #
         # layer, etc.                                                              #
         ############################################################################
+
         fc_cache = {}
         relu_cache = {}
         bn_cache = {}
@@ -290,6 +279,8 @@ class FullyConnectedNet(object):
 
         X = np.reshape(X, [batch_size, -1])  # Flatten our input images.
 
+        # Do as many Affine-Relu forward passes as required (num_layers - 1).
+        # Apply batch norm and dropout as required.
         for i in range(self.num_layers-1):
 
             fc_act, fc_cache[str(i+1)] = affine_forward(X, self.params['W'+str(i+1)], self.params['b'+str(i+1)])
@@ -303,8 +294,9 @@ class FullyConnectedNet(object):
 
             X = relu_act.copy()  # Result of one pass through the affine-relu block.
 
-
+        # Final output layer is FC layer with no relu.
         scores, final_cache = affine_forward(X, self.params['W'+str(self.num_layers)], self.params['b'+str(self.num_layers)])
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -319,7 +311,7 @@ class FullyConnectedNet(object):
         # loss in the loss variable and gradients in the grads dictionary. Compute #
         # data loss using softmax, and make sure that grads[k] holds the gradients #
         # for self.params[k]. Don't forget to add L2 regularization!               #
-        #                                                                           #
+        #                                                                          #
         # When using batch normalization, you don't need to regularize the scale   #
         # and shift parameters.                                                    #
         #                                                                          #
@@ -327,16 +319,20 @@ class FullyConnectedNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        # first, we should get loss value. (Softmax)
-        loss, dsoft = softmax_loss(scores,y)
+
+        # Calculate score loss and add reg. loss for last FC layer.
+        loss, dsoft = softmax_loss(scores, y)
         loss += 0.5*self.reg*(np.sum(np.square(self.params['W'+str(self.num_layers)])))
 
+        # Backprop dsoft to the last FC layer to calculate gradients.
         dx_last, dw_last, db_last = affine_backward(dsoft, final_cache)
 
         # Store gradients of the last FC layer
         grads['W'+str(self.num_layers)] = dw_last + self.reg*self.params['W'+str(self.num_layers)]
         grads['b'+str(self.num_layers)] = db_last
 
+        # Iteratively backprop through each Relu & FC layer to calculate gradients.
+        # Go through batchnorm and dropout layers if needed.
         for i in range(self.num_layers-1, 0, -1):
 
             if self.use_dropout:
